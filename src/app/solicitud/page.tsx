@@ -30,12 +30,14 @@ export default function SolicitudPage() {
         setDebugLog('Iniciando envío de solicitud...')
 
         const formData = new FormData(event.currentTarget)
+        const dni = (formData.get('dni') as string).replace(/\D/g, '')
+        const email = (formData.get('email') as string).trim()
 
         const payload = {
-            dni: (formData.get('dni') as string).replace(/\D/g, ''),
+            dni,
             nombre: (formData.get('nombre') as string).toUpperCase().trim(),
             apellido: (formData.get('apellido') as string).toUpperCase().trim(),
-            email: (formData.get('email') as string).trim(),
+            email,
             telefono: (formData.get('telefono') as string).replace(/\D/g, ''),
             tipo_afiliado: formData.get('tipo_afiliado') as string,
             estado: 'PENDIENTE',
@@ -43,6 +45,40 @@ export default function SolicitudPage() {
         }
 
         try {
+            setDebugLog(prev => prev + '\nVerificando duplicados...')
+
+            // 1. Verificar en solicitudes
+            const { data: existingSolicitud, error: solError } = await supabase
+                .from('afiliado_solicitudes')
+                .select('id')
+                .or(`dni.eq.${dni},email.eq.${email}`)
+                .maybeSingle()
+
+            if (solError) throw solError
+            if (existingSolicitud) {
+                const msg = "Error: El DNI o Email ya tiene una solicitud registrada"
+                setDebugLog(prev => prev + '\n❌ ' + msg)
+                setError(msg)
+                setIsPending(false)
+                return
+            }
+
+            // 2. Verificar en afiliados
+            const { data: existingAfiliado, error: afiError } = await supabase
+                .from('afiliados')
+                .select('id')
+                .or(`dni.eq.${dni},email.eq.${email}`)
+                .maybeSingle()
+
+            if (afiError) throw afiError
+            if (existingAfiliado) {
+                const msg = "Error: Este DNI o Email ya pertenece a un afiliado activo"
+                setDebugLog(prev => prev + '\n❌ ' + msg)
+                setError(msg)
+                setIsPending(false)
+                return
+            }
+
             setDebugLog(prev => prev + '\nEnviando datos a Supabase: ' + JSON.stringify(payload, null, 2))
 
             const { error: dbError } = await supabase
@@ -56,7 +92,6 @@ export default function SolicitudPage() {
 
             setDebugLog(prev => prev + '\n✅ ÉXITO: Solicitud insertada correctamente.')
             setSuccess(true)
-            // (event.target as HTMLFormElement).reset() // Opcional: resetear formulario
         } catch (err: any) {
             setError(err.message || 'Ocurrió un error inesperado al enviar la solicitud.')
             console.error('Submission error:', err)
