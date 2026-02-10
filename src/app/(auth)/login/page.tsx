@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { loginManual } from './actions'
-import { Loader2, Mail, User, Eye } from 'lucide-react'
+import { Loader2, Mail, User, Eye, UserPlus } from 'lucide-react'
+import Link from 'next/link'
 
 export default function LoginPage() {
     const [error, setError] = useState<string | null>(null)
@@ -83,17 +84,33 @@ export default function LoginPage() {
                         </div>
                     )}
 
-                    <button
-                        type="submit"
-                        disabled={isPending}
-                        className="w-full flex justify-center py-4 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-all uppercase tracking-widest shadow-lg"
-                    >
-                        {isPending ? (
-                            <Loader2 className="animate-spin h-5 w-5" />
-                        ) : (
-                            'Ingresar ahora'
-                        )}
-                    </button>
+                    <div className="space-y-4">
+                        <button
+                            type="submit"
+                            disabled={isPending}
+                            className="w-full flex justify-center py-4 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-all uppercase tracking-widest shadow-lg"
+                        >
+                            {isPending ? (
+                                <Loader2 className="animate-spin h-5 w-5" />
+                            ) : (
+                                'Ingresar ahora'
+                            )}
+                        </button>
+
+                        <div className="relative flex items-center py-2">
+                            <div className="flex-grow border-t border-gray-200"></div>
+                            <span className="flex-shrink mx-4 text-xs font-bold text-gray-400 uppercase tracking-widest">O</span>
+                            <div className="flex-grow border-t border-gray-200"></div>
+                        </div>
+
+                        <Link
+                            href="/solicitud"
+                            className="w-full flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-gray-200 text-xs font-black rounded-xl text-gray-500 bg-gray-50 hover:bg-white hover:border-blue-300 hover:text-blue-600 transition-all uppercase tracking-widest group"
+                        >
+                            <UserPlus className="h-4 w-4 text-gray-400 group-hover:text-blue-500" />
+                            ¿No tienes cuenta? Solicita tu Afiliación aquí
+                        </Link>
+                    </div>
                 </form>
 
                 <div className="text-center text-[10px] text-gray-400 uppercase tracking-tighter">
